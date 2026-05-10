@@ -185,13 +185,13 @@ export default function Episodios() {
           )}
 
           {isLoading ? (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-56 bg-card/60 border border-border rounded-sm animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {(data?.rows ?? []).map((ep) => (
                 <EpisodeCard key={ep.id} episode={ep} />
               ))}
