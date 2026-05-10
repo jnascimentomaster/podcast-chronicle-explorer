@@ -1,0 +1,58 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabaseConfigured } from "@/lib/supabase";
+
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string) ?? "";
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) ?? "";
+
+export interface SearchResult {
+  episode_id: string;
+  slug: string;
+  episode_number: number | null;
+  title: string;
+  published_at: string | null;
+  chunk_text: string;
+  similarity: number;
+}
+
+export function useSemanticSearch(query: string, limit = 12) {
+  const trimmed = query.trim();
+  return useQuery({
+    queryKey: ["search", trimmed, limit],
+    enabled: supabaseConfigured && trimmed.length >= 2,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/search`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ query: trimmed, limit }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Pesquisa falhou (${res.status}): ${text}`);
+      }
+      const json = await res.json();
+      return (json.results ?? []) as SearchResult[];
+    },
+  });
+}
+
+export function highlightTerms(text: string, query: string): React.ReactNode[] {
+  if (!query.trim()) return [text];
+  const terms = query
+    .trim()
+    .split(/\s+/)
+    .filter((t) => t.length >= 3)
+    .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  if (!terms.length) return [text];
+  const re = new RegExp(`(${terms.join("|")})`, "gi");
+  const parts = text.split(re);
+  return parts.map((p, i) =>
+    re.test(p)
+      ? { type: "mark", value: p, key: i } as any
+      : p
+  );
+}
