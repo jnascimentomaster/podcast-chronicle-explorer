@@ -8,38 +8,38 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Pergaminho — paleta histórica */
-    --background: 36 38% 93%;          /* #F5F0E8 pergaminho claro */
-    --background-alt: 38 36% 87%;      /* #EDE4D0 pergaminho escuro */
-    --foreground: 18 50% 12%;          /* #2C1810 tinta */
+    /* Moderno azul */
+    --background: 0 0% 98%;             /* #FAFAFA */
+    --background-alt: 214 100% 97%;     /* #EFF6FF hero */
+    --foreground: 215 25% 7%;           /* #0D1117 */
 
-    --card: 38 50% 96%;                /* #FAF6EE creme */
-    --card-foreground: 18 50% 12%;
+    --card: 0 0% 100%;                  /* #FFFFFF */
+    --card-foreground: 215 25% 7%;
 
-    --popover: 38 50% 96%;
-    --popover-foreground: 18 50% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 7%;
 
-    --primary: 25 76% 31%;             /* #8B4513 saddlebrown */
-    --primary-foreground: 38 50% 96%;
-    --primary-hover: 16 43% 29%;       /* #6B3A2A */
+    --primary: 221 83% 53%;             /* #2563EB */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 224 76% 48%;       /* #1D4ED8 */
 
-    --secondary: 38 36% 87%;
-    --secondary-foreground: 18 50% 12%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 215 25% 7%;
 
-    --muted: 38 36% 87%;
-    --muted-foreground: 22 22% 31%;    /* #5C4033 castanho médio */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;     /* #6B7280 */
 
-    --accent: 36 38% 68%;              /* #D4B896 badge */
-    --accent-foreground: 18 50% 12%;
+    --accent: 214 95% 93%;              /* #DBEAFE pill bg */
+    --accent-foreground: 224 76% 41%;   /* #1D4ED8 pill text */
 
-    --destructive: 0 60% 38%;
-    --destructive-foreground: 38 50% 96%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 36 36% 64%;              /* #C4A882 bege dourado */
-    --input: 36 36% 64%;
-    --ring: 25 76% 31%;
+    --border: 220 13% 91%;              /* #E5E7EB */
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
 
-    --radius: 0.25rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -104,18 +104,20 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Lato', system-ui, sans-serif;
-    background-image:
-      radial-gradient(circle at 25% 15%, hsl(var(--background-alt) / 0.5) 0, transparent 40%),
-      radial-gradient(circle at 75% 85%, hsl(var(--background-alt) / 0.4) 0, transparent 45%),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.27 0 0 0 0 0.16 0 0 0 0 0.07 0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-    background-attachment: fixed;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, h5 {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Inter', system-ui, sans-serif;
     color: hsl(var(--foreground));
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.05em;
   }
 
   ::selection {
@@ -125,9 +127,13 @@ All colors MUST be HSL.
 }
 
 @layer components {
-  .font-serif-display { font-family: 'Playfair Display', Georgia, serif; }
+  .font-serif-display { font-family: 'Inter', system-ui, sans-serif; font-weight: 800; letter-spacing: -0.04em; }
   .ornament-rule {
     height: 1px;
-    background: linear-gradient(to right, transparent, hsl(var(--border)), transparent);
+    background: hsl(var(--border));
+  }
+  .label-eyebrow {
+    @apply text-xs uppercase font-semibold text-muted-foreground;
+    letter-spacing: 0.05em;
   }
 }

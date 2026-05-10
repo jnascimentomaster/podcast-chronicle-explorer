@@ -29,7 +29,7 @@ export default function SearchBar({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Pesquisa por tema, personagem ou evento histórico…"
-        className={`w-full ${padY} pl-12 pr-32 ${text} bg-card border border-border rounded-sm font-serif italic placeholder:text-muted-foreground/70 text-foreground shadow-parchment focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary`}
+        className={`w-full ${padY} pl-12 pr-32 ${text} bg-card border border-border rounded-md placeholder:text-muted-foreground/80 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-shadow`}
       />
       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -38,7 +38,7 @@ export default function SearchBar({
       </span>
       <button
         type="submit"
-        className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-primary text-primary-foreground text-sm uppercase tracking-wider rounded-sm hover:bg-primary-hover transition-colors"
+        className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary-hover transition-colors"
       >
         Pesquisar
       </button>

@@ -27,67 +27,67 @@ export default function Index() {
       <ConfigNotice />
 
       {/* Hero */}
-      <section className="container pt-16 pb-12 text-center">
-        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6">
-          Arquivo · Pesquisa · Memória
-        </p>
-        <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-tight max-w-3xl mx-auto">
-          Toda a <em className="text-primary">História</em> contada no podcast,
-          num só arquivo navegável.
-        </h2>
-        <p className="mt-6 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
-          Episódios transcritos, indexados e organizados por temas, personagens
-          e épocas. Pesquisa em linguagem natural e descobre o que já foi dito.
-        </p>
-        <div className="mt-10 max-w-2xl mx-auto">
-          <SearchBar />
-        </div>
-        {count != null && (
-          <p className="mt-6 text-sm text-muted-foreground">
-            <span className="font-serif text-foreground text-base">{count}</span>{" "}
-            episódios transcritos e indexados
+      <section className="bg-background-alt border-b border-border">
+        <div className="container pt-20 pb-16 text-center">
+          <p className="label-eyebrow text-primary mb-5">
+            Arquivo · Pesquisa · Memória
           </p>
-        )}
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] max-w-3xl mx-auto" style={{ letterSpacing: "-0.05em" }}>
+            Toda a <span className="text-primary">História</span> contada no podcast,
+            num só arquivo navegável.
+          </h2>
+          <p className="mt-6 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
+            Episódios transcritos, indexados e organizados por temas, personagens
+            e épocas. Pesquisa em linguagem natural e descobre o que já foi dito.
+          </p>
+          <div className="mt-10 max-w-2xl mx-auto">
+            <SearchBar />
+          </div>
+          {count != null && (
+            <p className="mt-6 text-sm text-muted-foreground">
+              <span className="font-bold text-foreground">{count}</span>{" "}
+              episódios transcritos e indexados
+            </p>
+          )}
+        </div>
       </section>
-
-      <div className="container"><div className="ornament-rule" /></div>
 
       {/* Themes */}
       {themes && themes.length > 0 && (
-        <section className="container py-14">
+        <section className="container py-16">
           <header className="mb-8 text-center">
-            <h3 className="font-serif text-2xl">Explorar por tema</h3>
-            <p className="text-sm text-muted-foreground italic mt-1">
+            <p className="label-eyebrow text-primary mb-2">Temas</p>
+            <h3 className="text-2xl font-bold">Explorar por tema</h3>
+            <p className="text-sm text-muted-foreground mt-1">
               Os temas mais recorrentes do arquivo
             </p>
           </header>
-          <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
+          <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
             {themes.map((t) => (
               <Link
                 key={t.name}
                 to={`/episodios?tema=${encodeURIComponent(t.name)}`}
-                className="px-4 py-2 bg-card border border-border rounded-sm text-sm hover:border-primary hover:text-primary transition-colors"
+                className="px-3 py-1.5 bg-accent text-accent-foreground rounded-full text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 {t.name}
-                <span className="ml-2 text-xs text-muted-foreground">{t.count}</span>
+                <span className="ml-2 text-xs opacity-70">{t.count}</span>
               </Link>
             ))}
           </div>
         </section>
       )}
 
-      <div className="container"><div className="ornament-rule" /></div>
-
       {/* Recent */}
-      <section className="container py-14">
+      <section className="container py-16 border-t border-border">
         <header className="mb-8 flex items-end justify-between">
           <div>
-            <h3 className="font-serif text-2xl">Episódios recentes</h3>
-            <p className="text-sm text-muted-foreground italic mt-1">
+            <p className="label-eyebrow text-primary mb-2">Recentes</p>
+            <h3 className="text-2xl font-bold">Episódios recentes</h3>
+            <p className="text-sm text-muted-foreground mt-1">
               As últimas adições ao arquivo
             </p>
           </div>
-          <Link to="/episodios" className="text-sm text-primary hover:text-primary-hover">
+          <Link to="/episodios" className="text-sm font-semibold text-primary hover:text-primary-hover">
             Ver todos →
           </Link>
         </header>
@@ -95,7 +95,7 @@ export default function Index() {
         {loadingRecent ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-56 bg-card/60 border border-border rounded-sm animate-pulse" />
+              <div key={i} className="h-56 bg-muted rounded-md animate-pulse" />
             ))}
           </div>
         ) : (

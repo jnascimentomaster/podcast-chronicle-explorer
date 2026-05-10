@@ -11,14 +11,14 @@ export default function TagSection({
   if (!items || items.length === 0) return null;
   return (
     <section className="mb-6">
-      <h4 className="font-serif text-sm uppercase tracking-widest text-muted-foreground mb-2">
+      <h4 className="label-eyebrow mb-2">
         {icon && <span className="mr-2">{icon}</span>}
         {title}
       </h4>
       <div className="flex flex-wrap gap-2">
         {items.map((v) => {
           const inner = (
-            <span className="text-sm px-2.5 py-1 rounded-sm bg-accent text-accent-foreground border border-border/60">
+            <span className="text-sm px-3 py-1 rounded-full bg-accent text-accent-foreground font-medium">
               {v}
             </span>
           );
@@ -48,7 +48,7 @@ export function ListSection({
   if (!items || items.length === 0) return null;
   return (
     <section className="mb-6">
-      <h4 className="font-serif text-sm uppercase tracking-widest text-muted-foreground mb-2">
+      <h4 className="label-eyebrow mb-2">
         {icon && <span className="mr-2">{icon}</span>}
         {title}
       </h4>
