@@ -34,7 +34,7 @@ export default function Index() {
           </p>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] max-w-3xl mx-auto" style={{ letterSpacing: "-0.05em" }}>
             Toda a <span className="text-primary">História</span> contada no podcast,
-            num só arquivo navegável.
+            numa plataforma interactiva.
           </h2>
           <p className="mt-6 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
             Episódios transcritos, indexados e organizados por temas, personagens
