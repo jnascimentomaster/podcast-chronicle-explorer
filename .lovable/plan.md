@@ -1,92 +1,83 @@
+## Problema
 
-# História Explorer — Plano (Fase 1)
+A RPC `search_episodes` existe e os 96 chunks têm embeddings, mas a pesquisa devolve sempre `[]` por dois motivos:
 
-Construção faseada. Esta fase entrega o esqueleto visual, a ligação ao Supabase existente, a homepage e a página de episódios. A pesquisa semântica, página de episódio individual e exploração temática ficam para fases seguintes.
+1. **Threshold demasiado alto.** A RPC tem `min_similarity DEFAULT 0.5`. A edge function não passa esse parâmetro, então fica em 0.5 — em corpora pequenos (96 chunks) e com `text-embedding-3-small`, a similaridade típica para queries genéricos como "diplomacia portuguesa" anda entre 0.25 e 0.45. Resultado: filtra tudo.
 
-## 1. Ligação ao Supabase existente
+2. **Colunas devolvidas não batem com o frontend.** A RPC devolve `episode_id, slug, title, chunk_text, chunk_index, similarity`. O frontend (`SearchResult` em `useSemanticSearch.ts` e a UI em `Pesquisa.tsx`) espera também `episode_number` e `published_at`, e assume `episode_id` como string (a RPC devolve `integer`).
 
-A base já existe fora do Lovable, com `episodes`, `episode_chunks` e a função `search_episodes`. Não vamos activar Lovable Cloud (criaria um projecto novo e vazio).
+## Solução
 
-Em vez disso:
-- Criar um cliente Supabase em `src/lib/supabase.ts` que usa `import.meta.env.VITE_SUPABASE_URL` e `import.meta.env.VITE_SUPABASE_ANON_KEY`.
-- Pedir-te o **URL do projecto** e a **anon/publishable key** (são públicas, vão para `.env`).
-- Gerar tipos TypeScript manualmente para `episodes` (sem depender do Lovable Cloud auto-gen).
+### 1. Recriar a RPC para devolver os campos que a UI mostra e baixar o threshold default
 
-> Vais precisar de colar URL e anon key quando arrancar a implementação. A `OPENAI_API_KEY` e a edge function de pesquisa só entram na Fase 2.
+Migration SQL a correr no Supabase (Dashboard → SQL Editor, ou via CLI):
 
-## 2. Design system pergaminho
-
-Configurar `src/index.css` e `tailwind.config.ts` com tokens HSL semânticos:
-
-```text
---background        pergaminho claro    (#F5F0E8)
---background-alt    pergaminho escuro   (#EDE4D0)
---card              creme               (#FAF6EE)
---foreground        tinta               (#2C1810)
---muted-foreground  castanho médio      (#5C4033)
---primary           saddlebrown         (#8B4513)
---primary-hover     castanho escuro     (#6B3A2A)
---border            bege dourado        (#C4A882)
---badge             #D4B896 / texto #2C1810
+```sql
+create or replace function public.search_episodes(
+  query_embedding vector,
+  match_count integer default 12,
+  min_similarity double precision default 0.15
+)
+returns table(
+  episode_id integer,
+  slug text,
+  episode_number integer,
+  title text,
+  published_at timestamptz,
+  chunk_text text,
+  chunk_index integer,
+  similarity double precision
+)
+language sql stable
+as $$
+  select
+    e.id            as episode_id,
+    e.slug,
+    e.episode_number,
+    e.title,
+    e.published_at,
+    c.chunk_text,
+    c.chunk_index,
+    1 - (c.embedding <=> query_embedding) as similarity
+  from episode_chunks c
+  join episodes e on e.id = c.episode_id
+  where 1 - (c.embedding <=> query_embedding) > min_similarity
+  order by c.embedding <=> query_embedding
+  limit match_count;
+$$;
 ```
 
-- Fontes via Google Fonts no `index.html`: **Playfair Display** (títulos) + **Lato** (corpo).
-- Textura subtil de papel (SVG/CSS noise) no `body`.
-- Componentes shadcn (Button, Card, Badge, Input) ajustados a estes tokens — variantes `parchment`, `ink`.
-- Sem gradientes modernos. Sombras suaves castanhas.
+Notas:
+- Ajusta os nomes/tipos de `episode_number` e `published_at` ao que existe mesmo na tabela `episodes` (podem ser `int`/`text`/`date`/`timestamp`). Se algum não existir, retiramos da RETURNS.
+- `0.15` é um default seguro para corpus pequeno; a edge function vai passar explicitamente.
 
-## 3. Estrutura e rotas
+### 2. Edge function — passar `min_similarity` e logging
 
-Adicionar ao `App.tsx`:
+Em `supabase/functions/search/index.ts`:
+- Passar `min_similarity: 0.15` no `supabase.rpc("search_episodes", {...})`.
+- Aceitar override opcional via body (`min_similarity` no JSON) para podermos afinar a partir do cliente sem redeploy.
+- Adicionar log do nº de resultados e do top-similarity para diagnóstico.
 
-```text
-/             → Homepage
-/episodios    → Lista de episódios (com filtros)
-*             → NotFound (já existe)
+Depois redeploy:
+```
+npx supabase functions deploy search --no-verify-jwt --project-ref voaypwubagvhedtrootg
 ```
 
-Layout partilhado (`src/components/layout/SiteLayout.tsx`) com:
-- Header: nome "História Explorer" + subtítulo + nav (Início, Episódios, Temas — Temas desactivado nesta fase).
-- Footer com link para o Observador.
+### 3. Frontend — alinhar tipos
 
-## 4. Homepage `/`
+Em `src/hooks/useSemanticSearch.ts`:
+- Mudar `episode_id: string` → `episode_id: number`.
+- Manter `episode_number` e `published_at` opcionais (`number | null`, `string | null`) — já são tratados como nullable na UI.
 
-Componentes em `src/components/home/`:
-- `Hero` — título serifado grande, subtítulo, barra de pesquisa em destaque (nesta fase faz `navigate('/episodios?q=...')`, ainda sem semântica).
-- `ThemeCloud` — tags clicáveis dos temas mais frequentes. Hook `useTopThemes()` que faz `select temas from episodes`, agrega no cliente (com 5 episódios é trivial), top 12.
-- `RecentEpisodes` — grid de até 6 episódios mais recentes (`order by published_at desc limit 6`).
-- `EpisodeCounter` — `count` exact de `episodes`.
+`Pesquisa.tsx` não precisa de mudar (já lida com `episode_number != null` e `formatDate(published_at)`).
 
-## 5. Página de episódios `/episodios`
+## Validação
 
-`src/pages/Episodios.tsx`:
-- Hook `useEpisodes({ search, tema, pais, epoca, complexidade, ligacaoPortugal, page })`.
-- Query Supabase com `.ilike('title', %q%)`, `.contains('temas', [tema])`, etc., `range(...)` para paginação 20/pág.
-- Filtros laterais (sidebar em desktop, drawer em mobile) — listas dinâmicas a partir de `select temas, paises, epocas, complexidade from episodes` agregadas no cliente nesta fase (5 episódios). Mais tarde mover para RPC.
-- `EpisodeCard` reutilizável: número, título serifado, data formatada (pt-PT), duração (mm:ss), resumo truncado a ~3 linhas, 3-4 tag badges. Card inteiro clicável para `/episodio/[slug]` (rota só implementada na Fase 2 — link já preparado).
-- Estado vazio + skeletons estilo pergaminho.
-- Sincronização com query string (`?tema=`, `?q=`, `?page=`).
+1. Correr a migration SQL.
+2. Redeploy da edge function.
+3. Pesquisar "diplomacia portuguesa" → devem aparecer resultados com % de relevância ≥ 15%.
+4. Se ainda vier vazio, baixar o threshold para `0.05` temporariamente e inspeccionar os logs (`npx supabase functions logs search --tail`) para ver o top-similarity real.
 
-## 6. Tipos e utils
+## Pergunta antes de avançar
 
-- `src/types/episode.ts` com a interface `Episode` correspondente às colunas indicadas.
-- `src/lib/format.ts` com `formatDate`, `formatDuration`.
-- `src/hooks/useEpisodes.ts`, `useTopThemes.ts`, `useRecentEpisodes.ts`, `useEpisodeCount.ts` (todos via React Query, já configurado em `App.tsx`).
-
-## 7. Fora do âmbito desta fase (próximos passos)
-
-- `/episodio/[slug]` com transcrição, ideias principais, livros, badges.
-- `/pesquisa` + edge function `search` que gera embedding com `text-embedding-3-small` e chama RPC `search_episodes`. Vai requerer `OPENAI_API_KEY` como secret de edge function — para isso vamos activar Lovable Cloud **só para a edge function**, ou alternativamente alojar a função no teu próprio Supabase (decidimos quando chegarmos lá).
-- `/temas` mapa categorizado.
-- Mover agregações de filtros/temas para RPCs SQL quando o número de episódios crescer.
-
-## Detalhes técnicos
-
-- React 18 + Vite + TS + Tailwind + shadcn (já no projecto).
-- `@supabase/supabase-js` a instalar.
-- React Query para cache e estados de loading.
-- `react-router-dom` já presente; adicionar nova rota.
-- Sem alterações a `vite.config.ts` necessárias além de eventual Google Fonts no `index.html`.
-- Responsivo: grid 1 col mobile, 2 col tablet, 3 col desktop nos cards.
-
-Quando aprovares, começo por pedir-te `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` e arranco pela infraestrutura (cliente + design system) antes das páginas.
+Confirmas que a tabela `episodes` tem mesmo as colunas `episode_number` e `published_at`? Se os nomes forem diferentes (ex.: `number`, `date`, `pub_date`), diz-me os nomes reais para eu ajustar a RETURNS da função.

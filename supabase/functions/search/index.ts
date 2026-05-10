@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       throw new Error("OPENAI_API_KEY não está configurada nos secrets do projecto.");
     }
 
-    const { query, limit = 12 } = await req.json();
+    const { query, limit = 12, min_similarity = 0.15 } = await req.json();
     if (!query || typeof query !== "string" || query.trim().length < 2) {
       return new Response(
         JSON.stringify({ error: "query inválida" }),
@@ -71,17 +71,19 @@ Deno.serve(async (req) => {
 
     const queryEmbedding = await embed(query.trim());
 
-    // Ajusta o nome dos parâmetros conforme a tua função RPC.
-    // Tentativa típica: search_episodes(query_embedding vector, match_count int)
     const { data, error } = await supabase.rpc("search_episodes", {
       query_embedding: queryEmbedding,
       match_count: Math.min(Math.max(limit, 1), 50),
+      min_similarity: typeof min_similarity === "number" ? min_similarity : 0.15,
     });
 
     if (error) {
       console.error("RPC search_episodes error:", error);
       throw new Error(`RPC error: ${error.message}`);
     }
+
+    const top = Array.isArray(data) && data.length > 0 ? data[0].similarity : null;
+    console.log(`search: query="${query}" results=${data?.length ?? 0} top_sim=${top}`);
 
     return new Response(
       JSON.stringify({ results: data ?? [] }),
