@@ -13,6 +13,8 @@ export interface SearchResult {
   chunk_text: string;
   chunk_index?: number;
   similarity: number;
+  score?: number;
+  matches?: number;
 }
 
 export function useSemanticSearch(query: string, limit = 12) {
