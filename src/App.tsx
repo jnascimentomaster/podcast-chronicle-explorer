@@ -9,6 +9,8 @@ import Episodios from "./pages/Episodios.tsx";
 import Episodio from "./pages/Episodio.tsx";
 import Pesquisa from "./pages/Pesquisa.tsx";
 import Temas from "./pages/Temas.tsx";
+import TemaDominio from "./pages/TemaDominio.tsx";
+import TemaSubtema from "./pages/TemaSubtema.tsx";
 import SiteLayout from "./components/layout/SiteLayout";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
             <Route path="/episodio/:slug" element={<Episodio />} />
             <Route path="/pesquisa" element={<Pesquisa />} />
             <Route path="/temas" element={<Temas />} />
+            <Route path="/temas/:dominioSlug" element={<TemaDominio />} />
+            <Route path="/temas/:dominioSlug/:temaSlug" element={<TemaSubtema />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Route>

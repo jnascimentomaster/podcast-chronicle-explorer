@@ -28,5 +28,9 @@ export interface Episode {
   controversia: boolean | null;
   complexidade: Complexidade | null;
 
+  dominio_primario: string | null;
+  dominio_secundario: string | null;
+  tema_principal: string | null;
+
   source: string | null;
 }
