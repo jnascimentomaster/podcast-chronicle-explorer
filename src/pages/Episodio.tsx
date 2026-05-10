@@ -80,11 +80,25 @@ export default function Episodio() {
         </section>
       )}
 
-      {ep.ideias_principais && ep.ideias_principais.length > 0 && (
+      {(() => {
+        const raw: unknown = ep.ideias_principais;
+        const ideias: string[] = Array.isArray(raw)
+          ? (raw as string[])
+          : typeof raw === "string"
+          ? (() => {
+              try {
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : [raw];
+              } catch {
+                return raw.trim() ? [raw] : [];
+              }
+            })()
+          : [];
+        return ideias.length > 0 && (
         <section className="my-10 bg-card border border-border rounded-sm p-6 shadow-parchment">
           <h3 className="font-serif text-xl mb-4">Ideias principais</h3>
           <ol className="space-y-3 list-none">
-            {ep.ideias_principais.map((ideia, i) => (
+            {ideias.map((ideia, i) => (
               <li key={i} className="flex gap-4">
                 <span className="font-serif text-primary text-lg leading-none mt-1 shrink-0 w-6">
                   {String(i + 1).padStart(2, "0")}
@@ -94,7 +108,8 @@ export default function Episodio() {
             ))}
           </ol>
         </section>
-      )}
+        );
+      })()}
 
       <div className="ornament-rule my-10" />
 
