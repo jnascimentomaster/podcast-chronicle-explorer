@@ -81,9 +81,9 @@ export default function Episodio() {
       )}
 
       {(() => {
-        const raw = ep.ideias_principais;
+        const raw: unknown = ep.ideias_principais;
         const ideias: string[] = Array.isArray(raw)
-          ? raw
+          ? (raw as string[])
           : typeof raw === "string"
           ? (() => {
               try {
