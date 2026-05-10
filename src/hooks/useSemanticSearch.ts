@@ -15,6 +15,7 @@ export interface SearchResult {
   similarity: number;
   score?: number;
   matches?: number;
+  search_mode?: "hybrid" | "legacy_vector";
 }
 
 export function useSemanticSearch(query: string, limit = 12) {
@@ -38,7 +39,25 @@ export function useSemanticSearch(query: string, limit = 12) {
         throw new Error(`Pesquisa falhou (${res.status}): ${text}`);
       }
       const json = await res.json();
-      return (json.results ?? []) as SearchResult[];
+      const results = (json.results ?? []) as SearchResult[];
+      const meaningfulTerms = trimmed
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .split(/[^\p{L}\p{N}]+/u)
+        .filter((term) => term.length >= 3);
+
+      if (
+        meaningfulTerms.length >= 2 &&
+        results.length > 0 &&
+        !results.some((result) => result.search_mode === "hybrid" || result.score != null || result.matches != null)
+      ) {
+        throw new Error(
+          "A função search publicada ainda está a usar a pesquisa vectorial antiga. Faz redeploy da edge function search para activar a hybrid search.",
+        );
+      }
+
+      return results;
     },
   });
 }
