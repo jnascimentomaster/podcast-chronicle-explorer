@@ -39,20 +39,3 @@ export function useSemanticSearch(query: string, limit = 12) {
     },
   });
 }
-
-export function highlightTerms(text: string, query: string): React.ReactNode[] {
-  if (!query.trim()) return [text];
-  const terms = query
-    .trim()
-    .split(/\s+/)
-    .filter((t) => t.length >= 3)
-    .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  if (!terms.length) return [text];
-  const re = new RegExp(`(${terms.join("|")})`, "gi");
-  const parts = text.split(re);
-  return parts.map((p, i) =>
-    re.test(p)
-      ? { type: "mark", value: p, key: i } as any
-      : p
-  );
-}
