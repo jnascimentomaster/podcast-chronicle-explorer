@@ -114,52 +114,53 @@ export default function Episodios() {
         <SearchBar size="md" initial={filters.q ?? ""} />
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[15rem_1fr] gap-10">
-        {/* Sidebar */}
-        <aside className="lg:sticky lg:top-6 self-start">
-          <div className="bg-card border border-border rounded-sm p-4 shadow-parchment text-sm">
-            <p className="font-serif text-xs uppercase tracking-widest text-muted-foreground mb-3">
-              Filtros
-            </p>
-            <FacetGroup
-              title="Tema"
-              values={facets?.temas ?? []}
-              active={filters.tema ?? null}
-              onPick={(v) => setParam("tema", v)}
+      {/* Filtros horizontais */}
+      <div className="bg-card border border-border rounded-sm p-5 shadow-parchment mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <p className="font-serif text-xs uppercase tracking-widest text-muted-foreground">
+            Filtros
+          </p>
+          <label className="flex items-center gap-2 text-[13px] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filters.ligacaoPortugal}
+              onChange={(e) => setParam("portugal", e.target.checked ? "1" : null)}
+              className="accent-primary"
             />
-            <FacetGroup
-              title="País"
-              values={facets?.paises ?? []}
-              active={filters.pais ?? null}
-              onPick={(v) => setParam("pais", v)}
-            />
-            <FacetGroup
-              title="Época"
-              values={facets?.epocas ?? []}
-              active={filters.epoca ?? null}
-              onPick={(v) => setParam("epoca", v)}
-            />
-            <FacetGroup
-              title="Complexidade"
-              values={facets?.complexidade ?? []}
-              active={filters.complexidade ?? null}
-              onPick={(v) => setParam("complexidade", v)}
-              initialVisible={4}
-            />
-            <label className="flex items-center gap-2 text-[13px] cursor-pointer mt-2 pt-3 border-t border-border/60">
-              <input
-                type="checkbox"
-                checked={filters.ligacaoPortugal}
-                onChange={(e) => setParam("portugal", e.target.checked ? "1" : null)}
-                className="accent-primary"
-              />
-              Liga a Portugal
-            </label>
-          </div>
-        </aside>
+            Liga a Portugal
+          </label>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-2">
+          <FacetGroup
+            title="Tema"
+            values={facets?.temas ?? []}
+            active={filters.tema ?? null}
+            onPick={(v) => setParam("tema", v)}
+          />
+          <FacetGroup
+            title="País"
+            values={facets?.paises ?? []}
+            active={filters.pais ?? null}
+            onPick={(v) => setParam("pais", v)}
+          />
+          <FacetGroup
+            title="Época"
+            values={facets?.epocas ?? []}
+            active={filters.epoca ?? null}
+            onPick={(v) => setParam("epoca", v)}
+          />
+          <FacetGroup
+            title="Complexidade"
+            values={facets?.complexidade ?? []}
+            active={filters.complexidade ?? null}
+            onPick={(v) => setParam("complexidade", v)}
+            initialVisible={4}
+          />
+        </div>
+      </div>
 
-        {/* Results */}
-        <section>
+      {/* Results */}
+      <section>
           <div className="flex items-center justify-between mb-6">
             <p className="text-sm text-muted-foreground">
               {isLoading ? "A carregar…" : `${total} ${total === 1 ? "episódio" : "episódios"}`}
@@ -226,8 +227,7 @@ export default function Episodios() {
               </button>
             </div>
           )}
-        </section>
-      </div>
+      </section>
     </div>
   );
 }
