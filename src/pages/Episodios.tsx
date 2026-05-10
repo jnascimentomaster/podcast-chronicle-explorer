@@ -1,31 +1,39 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import EpisodeCard from "@/components/episodes/EpisodeCard";
 import SearchBar from "@/components/SearchBar";
 import { useEpisodes, useFacetValues } from "@/hooks/useEpisodes";
 
 function FacetGroup({
-  title, values, active, onPick,
+  title, values, active, onPick, initialVisible = 6,
 }: {
   title: string;
   values: string[];
   active: string | null;
   onPick: (v: string | null) => void;
+  initialVisible?: number;
 }) {
   if (!values.length) return null;
+  const [expanded, setExpanded] = useState(false);
+  const ordered = active && !values.includes(active) ? [active, ...values] : values;
+  const reordered = active
+    ? [active, ...ordered.filter((v) => v !== active)]
+    : ordered;
+  const visible = expanded ? reordered : reordered.slice(0, initialVisible);
+  const hidden = reordered.length - visible.length;
   return (
-    <div className="mb-6">
-      <h4 className="font-serif text-sm uppercase tracking-widest text-muted-foreground mb-2">
+    <div className="mb-5">
+      <h4 className="font-serif text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
         {title}
       </h4>
-      <ul className="space-y-1">
-        {values.map((v) => {
+      <ul className={`space-y-0.5 ${expanded ? "max-h-64 overflow-y-auto pr-1" : ""}`}>
+        {visible.map((v) => {
           const isActive = active === v;
           return (
             <li key={v}>
               <button
                 onClick={() => onPick(isActive ? null : v)}
-                className={`text-left text-sm w-full px-2 py-1 rounded-sm transition-colors ${
+                className={`text-left text-[13px] w-full px-2 py-0.5 rounded-sm transition-colors leading-snug ${
                   isActive
                     ? "bg-primary text-primary-foreground"
                     : "text-foreground hover:bg-accent/60"
@@ -37,6 +45,22 @@ function FacetGroup({
           );
         })}
       </ul>
+      {hidden > 0 && !expanded && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="mt-1 text-[11px] uppercase tracking-wider text-primary hover:text-primary-hover"
+        >
+          + {hidden} mais
+        </button>
+      )}
+      {expanded && reordered.length > initialVisible && (
+        <button
+          onClick={() => setExpanded(false)}
+          className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground hover:text-primary"
+        >
+          mostrar menos
+        </button>
+      )}
     </div>
   );
 }
@@ -90,10 +114,13 @@ export default function Episodios() {
         <SearchBar size="md" initial={filters.q ?? ""} />
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-[15rem_1fr] gap-10">
         {/* Sidebar */}
         <aside className="lg:sticky lg:top-6 self-start">
-          <div className="bg-card border border-border rounded-sm p-5 shadow-parchment">
+          <div className="bg-card border border-border rounded-sm p-4 shadow-parchment text-sm">
+            <p className="font-serif text-xs uppercase tracking-widest text-muted-foreground mb-3">
+              Filtros
+            </p>
             <FacetGroup
               title="Tema"
               values={facets?.temas ?? []}
@@ -117,8 +144,9 @@ export default function Episodios() {
               values={facets?.complexidade ?? []}
               active={filters.complexidade ?? null}
               onPick={(v) => setParam("complexidade", v)}
+              initialVisible={4}
             />
-            <label className="flex items-center gap-2 text-sm cursor-pointer mt-2">
+            <label className="flex items-center gap-2 text-[13px] cursor-pointer mt-2 pt-3 border-t border-border/60">
               <input
                 type="checkbox"
                 checked={filters.ligacaoPortugal}
