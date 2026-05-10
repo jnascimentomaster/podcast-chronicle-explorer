@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       throw new Error("OPENAI_API_KEY não está configurada nos secrets do projecto.");
     }
 
-    const { query, limit = 12, min_similarity = 0.28 } = await req.json();
+    const { query, limit = 12 } = await req.json();
     if (!query || typeof query !== "string" || query.trim().length < 2) {
       return new Response(
         JSON.stringify({ error: "query inválida" }),
@@ -69,24 +69,50 @@ Deno.serve(async (req) => {
       );
     }
 
-    const queryEmbedding = await embed(query.trim());
+    const trimmed = query.trim();
+    const queryEmbedding = await embed(trimmed);
+    const matchCount = Math.min(Math.max(limit, 1), 50);
 
-    const { data, error } = await supabase.rpc("search_episodes", {
+    // Hybrid: vector + full-text com RRF, agregado por episódio.
+    let { data, error } = await supabase.rpc("hybrid_search_episodes", {
+      query_text: trimmed,
       query_embedding: queryEmbedding,
-      match_count: Math.min(Math.max(limit, 1), 50),
-      min_similarity: typeof min_similarity === "number" ? min_similarity : 0.28,
+      match_count: matchCount,
     });
 
+    // Fallback para a RPC antiga se a hybrid ainda não estiver criada.
+    if (error && /hybrid_search_episodes/i.test(error.message ?? "")) {
+      console.warn("hybrid_search_episodes não existe — fallback para search_episodes");
+      const fb = await supabase.rpc("search_episodes", {
+        query_embedding: queryEmbedding,
+        match_count: matchCount,
+        min_similarity: 0.28,
+      });
+      data = fb.data;
+      error = fb.error;
+    }
+
     if (error) {
-      console.error("RPC search_episodes error:", error);
+      console.error("RPC error:", error);
       throw new Error(`RPC error: ${error.message}`);
     }
 
-    const top = Array.isArray(data) && data.length > 0 ? data[0].similarity : null;
-    console.log(`search: query="${query}" results=${data?.length ?? 0} top_sim=${top}`);
+    // Threshold dinâmico: corta resultados muito abaixo do top.
+    let results = Array.isArray(data) ? data : [];
+    if (results.length > 0) {
+      const topSim = results[0].similarity ?? 0;
+      const cutoff = Math.max(0.22, topSim - 0.12);
+      results = results.filter((r: { similarity?: number }) =>
+        (r.similarity ?? 0) >= cutoff
+      );
+    }
+
+    console.log(
+      `search: q="${trimmed}" total=${data?.length ?? 0} kept=${results.length} top=${results[0]?.similarity ?? null}`,
+    );
 
     return new Response(
-      JSON.stringify({ results: data ?? [] }),
+      JSON.stringify({ results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
