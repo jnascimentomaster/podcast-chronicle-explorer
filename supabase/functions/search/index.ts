@@ -32,6 +32,24 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
 
+const STOPWORDS = new Set([
+  "a", "ao", "aos", "as", "com", "da", "das", "de", "do", "dos", "e", "em", "na", "nas", "no", "nos", "o", "os", "para", "por", "um", "uma",
+]);
+
+function meaningfulTerms(text: string): string[] {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((term) => term.length >= 3 && !STOPWORDS.has(term));
+}
+
+function isHybridMissing(error: { message?: string; code?: string } | null): boolean {
+  const haystack = `${error?.code ?? ""} ${error?.message ?? ""}`;
+  return /hybrid_search_episodes|PGRST202|schema cache|could not find.*function/i.test(haystack);
+}
+
 async function embed(text: string): Promise<number[]> {
   const res = await fetch("https://api.openai.com/v1/embeddings", {
     method: "POST",
@@ -73,16 +91,29 @@ Deno.serve(async (req) => {
     const queryEmbedding = await embed(trimmed);
     const matchCount = Math.min(Math.max(limit, 1), 50);
 
+    const terms = meaningfulTerms(trimmed);
+    let searchMode = "hybrid";
+
     // Hybrid: vector + full-text com RRF, agregado por episódio.
     let { data, error } = await supabase.rpc("hybrid_search_episodes", {
       query_text: trimmed,
       query_embedding: queryEmbedding,
       match_count: matchCount,
+      candidates: 120,
     });
 
-    // Fallback para a RPC antiga se a hybrid ainda não estiver criada.
-    if (error && /hybrid_search_episodes/i.test(error.message ?? "")) {
-      console.warn("hybrid_search_episodes não existe — fallback para search_episodes");
+    // Para queries com várias palavras, não aceitamos fallback vector-only: é precisamente
+    // isso que devolve resultados fracos que só contêm “portuguesa”, etc.
+    if (error && isHybridMissing(error) && terms.length >= 2) {
+      throw new Error(
+        "A pesquisa híbrida ainda não está activa na base de dados. Corre o SQL supabase/sql/hybrid_search.sql e volta a fazer deploy da função search.",
+      );
+    }
+
+    // Fallback para a RPC antiga apenas em queries curtas/1 termo.
+    if (error && isHybridMissing(error)) {
+      searchMode = "legacy_vector";
+      console.warn("hybrid_search_episodes não existe — fallback vector-only para query curta");
       const fb = await supabase.rpc("search_episodes", {
         query_embedding: queryEmbedding,
         match_count: matchCount,
@@ -97,9 +128,10 @@ Deno.serve(async (req) => {
       throw new Error(`RPC error: ${error.message}`);
     }
 
-    // Threshold dinâmico: corta resultados muito abaixo do top.
+    // Threshold dinâmico só no fallback vector-only. Na pesquisa híbrida, a componente
+    // lexical já filtra resultados e alguns matches bons podem ter similarity baixa.
     let results = Array.isArray(data) ? data : [];
-    if (results.length > 0) {
+    if (searchMode === "legacy_vector" && results.length > 0) {
       const topSim = results[0].similarity ?? 0;
       const cutoff = Math.max(0.22, topSim - 0.12);
       results = results.filter((r: { similarity?: number }) =>
@@ -107,8 +139,10 @@ Deno.serve(async (req) => {
       );
     }
 
+    results = results.map((row: Record<string, unknown>) => ({ ...row, search_mode: searchMode }));
+
     console.log(
-      `search: q="${trimmed}" total=${data?.length ?? 0} kept=${results.length} top=${results[0]?.similarity ?? null}`,
+      `search: mode=${searchMode} q="${trimmed}" total=${data?.length ?? 0} kept=${results.length} top=${results[0]?.similarity ?? null}`,
     );
 
     return new Response(
