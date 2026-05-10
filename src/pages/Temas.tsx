@@ -92,12 +92,12 @@ export default function Temas() {
   return (
     <section className="container py-12">
       <header className="mb-8 text-center max-w-2xl mx-auto">
-        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3">
+        <p className="label-eyebrow text-primary mb-3">
           Arquivo · Índice temático
         </p>
-        <h1 className="font-serif text-4xl sm:text-5xl">Mapa de Temas</h1>
+        <h1 className="text-4xl sm:text-5xl font-extrabold" style={{ letterSpacing: "-0.05em" }}>Mapa de Temas</h1>
         <div className="ornament-rule my-5" />
-        <p className="text-sm text-muted-foreground italic">
+        <p className="text-sm text-muted-foreground">
           {data ? `${total} temas` : "A carregar…"} organizados por categoria.
           Cada tema agrupa os episódios em que aparece.
         </p>
@@ -116,17 +116,17 @@ export default function Temas() {
         <div className="space-y-10 max-w-5xl mx-auto">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i}>
-              <div className="h-5 w-48 bg-card/60 border border-border rounded-sm animate-pulse mb-4" />
+              <div className="h-5 w-48 bg-muted rounded-md animate-pulse mb-4" />
               <div className="flex flex-wrap gap-2">
                 {Array.from({ length: 8 }).map((_, j) => (
-                  <div key={j} className="h-9 w-32 bg-card/60 border border-border rounded-sm animate-pulse" />
+                  <div key={j} className="h-9 w-32 bg-muted rounded-full animate-pulse" />
                 ))}
               </div>
             </div>
           ))}
         </div>
       ) : sections.length === 0 ? (
-        <p className="text-center text-muted-foreground italic py-12">
+        <p className="text-center text-muted-foreground py-12">
           Nenhum tema encontrado{q ? ` para “${q}”` : ""}.
         </p>
       ) : (
@@ -136,11 +136,11 @@ export default function Temas() {
             return (
               <div key={section.id}>
                 <div className="flex items-baseline gap-4 mb-5">
-                  <h2 className="font-serif text-xl sm:text-2xl text-primary whitespace-nowrap">
+                  <h2 className="text-xl sm:text-2xl font-bold text-primary whitespace-nowrap">
                     {section.label}
                   </h2>
                   <div className="flex-1 ornament-rule" />
-                  <span className="text-xs uppercase tracking-widest text-muted-foreground">
+                  <span className="label-eyebrow">
                     {items.length}
                   </span>
                 </div>
@@ -152,13 +152,11 @@ export default function Temas() {
                       <Link
                         key={t.name}
                         to={`/episodios?tema=${encodeURIComponent(t.name)}`}
-                        className="group inline-flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-sm hover:border-primary hover:bg-accent/40 transition-colors"
+                        className="group inline-flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-foreground rounded-full font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
                         style={{ fontSize: `${fontSize}rem` }}
                       >
-                        <span className="text-foreground group-hover:text-primary transition-colors">
-                          {t.name}
-                        </span>
-                        <span className="text-[0.7rem] text-muted-foreground tabular-nums">
+                        <span>{t.name}</span>
+                        <span className="text-[0.7rem] opacity-70 tabular-nums">
                           {t.count}
                         </span>
                       </Link>
