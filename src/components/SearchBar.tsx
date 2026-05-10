@@ -1,14 +1,23 @@
 import { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function SearchBar({ initial = "", size = "lg" }: { initial?: string; size?: "lg" | "md" }) {
+export default function SearchBar({
+  initial = "",
+  size = "lg",
+  target = "pesquisa",
+}: {
+  initial?: string;
+  size?: "lg" | "md";
+  target?: "pesquisa" | "episodios";
+}) {
   const [value, setValue] = useState(initial);
   const navigate = useNavigate();
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     const q = value.trim();
-    navigate(q ? `/episodios?q=${encodeURIComponent(q)}` : "/episodios");
+    const base = target === "pesquisa" ? "/pesquisa" : "/episodios";
+    navigate(q ? `${base}?q=${encodeURIComponent(q)}` : base);
   }
 
   const padY = size === "lg" ? "py-4" : "py-3";
