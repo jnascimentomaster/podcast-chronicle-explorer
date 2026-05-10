@@ -66,11 +66,12 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],
-        sans: ['Lato', 'system-ui', 'sans-serif'],
+        serif: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        parchment: '0 1px 2px hsl(18 50% 12% / 0.06), 0 8px 24px -12px hsl(18 50% 12% / 0.18)',
+        parchment: '0 1px 2px rgb(0 0 0 / 0.04)',
+        card: '0 1px 2px rgb(0 0 0 / 0.04)',
       },
       keyframes: {
         "accordion-down": {
