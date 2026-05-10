@@ -1,19 +1,15 @@
 ## Problema
 
-A RPC `search_episodes` existe e os 96 chunks têm embeddings, mas a pesquisa devolve sempre `[]` por dois motivos:
-
-1. **Threshold demasiado alto.** A RPC tem `min_similarity DEFAULT 0.5`. A edge function não passa esse parâmetro, então fica em 0.5 — em corpora pequenos (96 chunks) e com `text-embedding-3-small`, a similaridade típica para queries genéricos como "diplomacia portuguesa" anda entre 0.25 e 0.45. Resultado: filtra tudo.
-
-2. **Colunas devolvidas não batem com o frontend.** A RPC devolve `episode_id, slug, title, chunk_text, chunk_index, similarity`. O frontend (`SearchResult` em `useSemanticSearch.ts` e a UI em `Pesquisa.tsx`) espera também `episode_number` e `published_at`, e assume `episode_id` como string (a RPC devolve `integer`).
+O `CREATE OR REPLACE FUNCTION` falha com `42P13` porque a RPC `search_episodes` já existe com um RETURNS TABLE diferente (sem `episode_number` e `published_at`). O Postgres não permite mudar o tipo de retorno via `OR REPLACE` — é preciso fazer DROP primeiro.
 
 ## Solução
 
-### 1. Recriar a RPC para devolver os campos que a UI mostra e baixar o threshold default
-
-Migration SQL a correr no Supabase (Dashboard → SQL Editor, ou via CLI):
+Correr este SQL no Supabase Dashboard → SQL Editor (substitui o anterior):
 
 ```sql
-create or replace function public.search_episodes(
+drop function if exists public.search_episodes(vector, integer, double precision);
+
+create function public.search_episodes(
   query_embedding vector,
   match_count integer default 12,
   min_similarity double precision default 0.15
@@ -47,37 +43,14 @@ as $$
 $$;
 ```
 
-Notas:
-- Ajusta os nomes/tipos de `episode_number` e `published_at` ao que existe mesmo na tabela `episodes` (podem ser `int`/`text`/`date`/`timestamp`). Se algum não existir, retiramos da RETURNS.
-- `0.15` é um default seguro para corpus pequeno; a edge function vai passar explicitamente.
+## Se der erro nas colunas
 
-### 2. Edge function — passar `min_similarity` e logging
-
-Em `supabase/functions/search/index.ts`:
-- Passar `min_similarity: 0.15` no `supabase.rpc("search_episodes", {...})`.
-- Aceitar override opcional via body (`min_similarity` no JSON) para podermos afinar a partir do cliente sem redeploy.
-- Adicionar log do nº de resultados e do top-similarity para diagnóstico.
-
-Depois redeploy:
-```
-npx supabase functions deploy search --no-verify-jwt --project-ref voaypwubagvhedtrootg
-```
-
-### 3. Frontend — alinhar tipos
-
-Em `src/hooks/useSemanticSearch.ts`:
-- Mudar `episode_id: string` → `episode_id: number`.
-- Manter `episode_number` e `published_at` opcionais (`number | null`, `string | null`) — já são tratados como nullable na UI.
-
-`Pesquisa.tsx` não precisa de mudar (já lida com `episode_number != null` e `formatDate(published_at)`).
+Se o SQL falhar agora a queixar-se de `episode_number` ou `published_at` não existirem na tabela `episodes`, diz-me o erro exacto (ou os nomes reais das colunas) e ajusto a função — possíveis alternativas: `number`, `ep_number`, `date`, `pub_date`, `created_at`.
 
 ## Validação
 
-1. Correr a migration SQL.
-2. Redeploy da edge function.
-3. Pesquisar "diplomacia portuguesa" → devem aparecer resultados com % de relevância ≥ 15%.
-4. Se ainda vier vazio, baixar o threshold para `0.05` temporariamente e inspeccionar os logs (`npx supabase functions logs search --tail`) para ver o top-similarity real.
+1. Correr o SQL acima.
+2. Pesquisar "diplomacia portuguesa" no site — devem aparecer resultados.
+3. Se vier vazio, ver `npx supabase functions logs search --tail` para o `top_sim` e baixamos o threshold se preciso.
 
-## Pergunta antes de avançar
-
-Confirmas que a tabela `episodes` tem mesmo as colunas `episode_number` e `published_at`? Se os nomes forem diferentes (ex.: `number`, `date`, `pub_date`), diz-me os nomes reais para eu ajustar a RETURNS da função.
+A edge function e o frontend já estão alinhados; só falta esta migration correr com sucesso.
