@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       throw new Error("OPENAI_API_KEY não está configurada nos secrets do projecto.");
     }
 
-    const { query, limit = 12, min_similarity = 0.15 } = await req.json();
+    const { query, limit = 12, min_similarity = 0.28 } = await req.json();
     if (!query || typeof query !== "string" || query.trim().length < 2) {
       return new Response(
         JSON.stringify({ error: "query inválida" }),
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     const { data, error } = await supabase.rpc("search_episodes", {
       query_embedding: queryEmbedding,
       match_count: Math.min(Math.max(limit, 1), 50),
-      min_similarity: typeof min_similarity === "number" ? min_similarity : 0.15,
+      min_similarity: typeof min_similarity === "number" ? min_similarity : 0.28,
     });
 
     if (error) {
