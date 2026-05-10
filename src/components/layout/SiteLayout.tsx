@@ -35,10 +35,8 @@ export default function SiteLayout() {
           <nav className="flex items-center gap-6">
             <Nav to="/" end>Início</Nav>
             <Nav to="/episodios">Episódios</Nav>
+            <Nav to="/temas">Temas</Nav>
             <Nav to="/pesquisa">Pesquisa</Nav>
-            <span className="text-sm tracking-wide uppercase text-muted-foreground/50 cursor-not-allowed" title="Em breve">
-              Temas
-            </span>
           </nav>
         </div>
         <div className="ornament-rule" />

@@ -98,6 +98,27 @@ export function useTopThemes(limit = 12) {
   });
 }
 
+export function useAllThemes() {
+  return useQuery({
+    queryKey: ["episodes", "allThemes"],
+    enabled: supabaseConfigured,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("episodes").select("temas");
+      if (error) throw error;
+      const counts = new Map<string, number>();
+      for (const row of (data ?? []) as { temas: string[] | null }[]) {
+        for (const t of row.temas ?? []) {
+          if (!t) continue;
+          counts.set(t, (counts.get(t) ?? 0) + 1);
+        }
+      }
+      return [...counts.entries()]
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "pt"));
+    },
+  });
+}
+
 export function useFacetValues() {
   return useQuery({
     queryKey: ["episodes", "facets"],
