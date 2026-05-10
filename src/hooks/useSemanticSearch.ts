@@ -15,6 +15,7 @@ export interface SearchResult {
   similarity: number;
   score?: number;
   matches?: number;
+  search_mode?: "hybrid" | "legacy_vector";
 }
 
 export function useSemanticSearch(query: string, limit = 12) {
