@@ -18,10 +18,12 @@ export default {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
+        "background-alt": "hsl(var(--background-alt))",
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -62,6 +64,13 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+        sans: ['Lato', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        parchment: '0 1px 2px hsl(18 50% 12% / 0.06), 0 8px 24px -12px hsl(18 50% 12% / 0.18)',
       },
       keyframes: {
         "accordion-down": {
