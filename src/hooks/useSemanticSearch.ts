@@ -5,12 +5,13 @@ const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string) ?? "";
 const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) ?? "";
 
 export interface SearchResult {
-  episode_id: string;
+  episode_id: number;
   slug: string;
   episode_number: number | null;
   title: string;
   published_at: string | null;
   chunk_text: string;
+  chunk_index?: number;
   similarity: number;
 }
 
