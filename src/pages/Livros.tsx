@@ -99,6 +99,7 @@ function Section({
     slug: string;
     recomendado_count: number;
     citado_count: number;
+    authors?: string[] | null;
   }>;
   kind: "recomendado" | "citado";
   showAll: boolean;
@@ -126,6 +127,7 @@ function Section({
                 to={`/livro/${b.slug}`}
                 name={b.canonical_name}
                 count={kind === "recomendado" ? b.recomendado_count : b.citado_count}
+                meta={b.authors && b.authors.length > 0 ? b.authors.join(", ") : undefined}
               />
             ))}
           </EntityGrid>
