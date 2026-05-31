@@ -36,6 +36,9 @@ export default function SiteLayout() {
             <Nav to="/" end>Início</Nav>
             <Nav to="/episodios">Episódios</Nav>
             <Nav to="/temas">Temas</Nav>
+            <Nav to="/personagens">Personagens</Nav>
+            <Nav to="/lugares">Lugares</Nav>
+            <Nav to="/livros">Livros</Nav>
             <Nav to="/pesquisa">Pesquisa</Nav>
           </nav>
         </div>

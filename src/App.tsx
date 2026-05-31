@@ -11,6 +11,12 @@ import Pesquisa from "./pages/Pesquisa.tsx";
 import Temas from "./pages/Temas.tsx";
 import TemaDominio from "./pages/TemaDominio.tsx";
 import TemaSubtema from "./pages/TemaSubtema.tsx";
+import Personagens from "./pages/Personagens.tsx";
+import Personagem from "./pages/Personagem.tsx";
+import Lugares from "./pages/Lugares.tsx";
+import Lugar from "./pages/Lugar.tsx";
+import Livros from "./pages/Livros.tsx";
+import Livro from "./pages/Livro.tsx";
 import SiteLayout from "./components/layout/SiteLayout";
 
 const queryClient = new QueryClient();
@@ -30,6 +36,12 @@ const App = () => (
             <Route path="/temas" element={<Temas />} />
             <Route path="/temas/:dominioSlug" element={<TemaDominio />} />
             <Route path="/temas/:dominioSlug/:temaSlug" element={<TemaSubtema />} />
+            <Route path="/personagens" element={<Personagens />} />
+            <Route path="/personagem/:slug" element={<Personagem />} />
+            <Route path="/lugares" element={<Lugares />} />
+            <Route path="/lugar/:slug" element={<Lugar />} />
+            <Route path="/livros" element={<Livros />} />
+            <Route path="/livro/:slug" element={<Livro />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Route>
