@@ -11,6 +11,7 @@ export interface EntityRow {
   slug: string;
   aliases: string[] | null;
   episode_count: number | null;
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface EntityEpisodeRow {
@@ -78,7 +79,7 @@ export function useEntityBySlug(type: EntityType, slug: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("entities" as never)
-        .select("id,type,subtype,canonical_name,slug,aliases,episode_count")
+        .select("id,type,subtype,canonical_name,slug,aliases,episode_count,metadata")
         .eq("type", type)
         .eq("slug", slug!)
         .maybeSingle();
@@ -138,6 +139,7 @@ export interface BookAggregate {
   recomendado_count: number;
   citado_count: number;
   total: number;
+  authors?: string[] | null;
 }
 
 export function useBooksAggregated() {
@@ -159,7 +161,10 @@ export function useBooksAggregated() {
           .select("entity_id,canonical_name,slug,link_subtype")
           .eq("type", "livro")
           .range(from, from + PAGE - 1);
-        if (error) throw error;
+        if (error) {
+          console.error("[useBooksAggregated] entity_episodes error:", error);
+          throw error;
+        }
         const rows = (data ?? []) as typeof all;
         all.push(...rows);
         if (rows.length < PAGE) break;
@@ -178,6 +183,40 @@ export function useBooksAggregated() {
         else if (r.link_subtype === "citado") cur.citado_count += 1;
         cur.total += 1;
         map.set(r.entity_id, cur);
+      }
+
+      // Buscar metadata (autores) de todos os livros.
+      const meta: Array<{ id: string; metadata: Record<string, unknown> | null }> = [];
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from("entities" as never)
+          .select("id,metadata")
+          .eq("type", "livro")
+          .range(from, from + PAGE - 1);
+        if (error) {
+          console.error("[useBooksAggregated] entities metadata error:", error);
+          throw error;
+        }
+        const rows = (data ?? []) as typeof meta;
+        meta.push(...rows);
+        if (rows.length < PAGE) break;
+      }
+      const authorsById = new Map<string, string[]>();
+      for (const row of meta) {
+        const md = (row.metadata ?? {}) as { author?: string | null; authors?: unknown };
+        let list: string[] = [];
+        if (Array.isArray(md.authors)) {
+          list = (md.authors as unknown[])
+            .filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+        }
+        if (list.length === 0 && typeof md.author === "string" && md.author.trim().length > 0) {
+          list = [md.author.trim()];
+        }
+        if (list.length > 0) authorsById.set(row.id, list);
+      }
+      for (const b of map.values()) {
+        const a = authorsById.get(b.entity_id);
+        if (a) b.authors = a;
       }
       return Array.from(map.values());
     },
