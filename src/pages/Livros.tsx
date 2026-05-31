@@ -30,7 +30,10 @@ export default function Livros() {
     const citados = data
       .filter((b) => b.citado_count > 0 && matches(b.canonical_name))
       .sort((a, b) => b.citado_count - a.citado_count);
-    return { recomendados, citados };
+    const todos = data
+      .filter((b) => matches(b.canonical_name))
+      .sort((a, b) => b.total - a.total);
+    return { recomendados, citados, todos };
   }, [data, search]);
 
   return (
@@ -56,25 +59,39 @@ export default function Livros() {
 
       {normalised && (
         <>
-          <Section
-            icon="📖"
-            title="Recomendados"
-            subtitle="Sugestões de leitura dos autores."
-            books={normalised.recomendados}
-            kind="recomendado"
-            showAll={showAllRec}
-            setShowAll={setShowAllRec}
-          />
-          <div className="ornament-rule my-12" />
-          <Section
-            icon="📚"
-            title="Citados"
-            subtitle="Livros referidos durante as conversas."
-            books={normalised.citados}
-            kind="citado"
-            showAll={showAllCit}
-            setShowAll={setShowAllCit}
-          />
+          {normalised.recomendados.length === 0 && normalised.citados.length === 0 ? (
+            <Section
+              icon="📚"
+              title="Todos os livros"
+              subtitle="Livros referidos ao longo dos episódios, por nº de aparições."
+              books={normalised.todos}
+              kind="total"
+              showAll={showAllRec}
+              setShowAll={setShowAllRec}
+            />
+          ) : (
+            <>
+              <Section
+                icon="📖"
+                title="Recomendados"
+                subtitle="Sugestões de leitura dos autores."
+                books={normalised.recomendados}
+                kind="recomendado"
+                showAll={showAllRec}
+                setShowAll={setShowAllRec}
+              />
+              <div className="ornament-rule my-12" />
+              <Section
+                icon="📚"
+                title="Citados"
+                subtitle="Livros referidos durante as conversas."
+                books={normalised.citados}
+                kind="citado"
+                showAll={showAllCit}
+                setShowAll={setShowAllCit}
+              />
+            </>
+          )}
         </>
       )}
     </div>
@@ -99,9 +116,10 @@ function Section({
     slug: string;
     recomendado_count: number;
     citado_count: number;
+    total: number;
     authors?: string[] | null;
   }>;
-  kind: "recomendado" | "citado";
+  kind: "recomendado" | "citado" | "total";
   showAll: boolean;
   setShowAll: (v: boolean) => void;
 }) {
@@ -126,7 +144,13 @@ function Section({
                 key={b.entity_id}
                 to={`/livro/${b.slug}`}
                 name={b.canonical_name}
-                count={kind === "recomendado" ? b.recomendado_count : b.citado_count}
+                count={
+                  kind === "recomendado"
+                    ? b.recomendado_count
+                    : kind === "citado"
+                      ? b.citado_count
+                      : b.total
+                }
                 meta={b.authors && b.authors.length > 0 ? b.authors.join(", ") : undefined}
               />
             ))}
