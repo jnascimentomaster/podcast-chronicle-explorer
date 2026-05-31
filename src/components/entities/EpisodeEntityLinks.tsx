@@ -7,6 +7,14 @@ const PATHS: Record<EntityType, string> = {
   livro: "/livro",
 };
 
+type EpEntity = {
+  entity_id: string;
+  type: EntityType;
+  subtype: string | null;
+  canonical_name: string;
+  slug: string;
+};
+
 export default function EpisodeEntityLinks({
   episodeId,
 }: {
@@ -14,10 +22,10 @@ export default function EpisodeEntityLinks({
 }) {
   const { data } = useEpisodeEntities(episodeId);
   const groups = {
-    personagem: [] as typeof data extends (infer T)[] ? T[] : never,
-    lugar: [] as typeof data extends (infer T)[] ? T[] : never,
-    livro_recomendado: [] as typeof data extends (infer T)[] ? T[] : never,
-    livro_citado: [] as typeof data extends (infer T)[] ? T[] : never,
+    personagem: [] as EpEntity[],
+    lugar: [] as EpEntity[],
+    livro_recomendado: [] as EpEntity[],
+    livro_citado: [] as EpEntity[],
   };
   for (const e of data ?? []) {
     if (e.type === "personagem") groups.personagem.push(e);
