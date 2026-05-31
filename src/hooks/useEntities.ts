@@ -150,13 +150,13 @@ export function useBooksAggregated() {
         entity_id: string;
         canonical_name: string;
         slug: string;
-        subtype: string | null;
+        link_subtype: string | null;
       }> = [];
       const PAGE = 1000;
       for (let from = 0; ; from += PAGE) {
         const { data, error } = await supabase
           .from("entity_episodes" as never)
-          .select("entity_id,canonical_name,slug,subtype")
+          .select("entity_id,canonical_name,slug,link_subtype")
           .eq("type", "livro")
           .range(from, from + PAGE - 1);
         if (error) throw error;
@@ -174,8 +174,8 @@ export function useBooksAggregated() {
           citado_count: 0,
           total: 0,
         };
-        if (r.subtype === "recomendado") cur.recomendado_count += 1;
-        else if (r.subtype === "citado") cur.citado_count += 1;
+        if (r.link_subtype === "recomendado") cur.recomendado_count += 1;
+        else if (r.link_subtype === "citado") cur.citado_count += 1;
         cur.total += 1;
         map.set(r.entity_id, cur);
       }
@@ -193,7 +193,7 @@ export function useBookEpisodes(slug: string | undefined) {
       const { data, error } = await supabase
         .from("entity_episodes" as never)
         .select(
-          "entity_id,subtype,canonical_name,slug,episode_id,episode_slug,episode_title,episode_number,published_at",
+          "entity_id,link_subtype,canonical_name,slug,episode_id,episode_slug,episode_title,episode_number,published_at",
         )
         .eq("type", "livro")
         .eq("slug", slug!)
@@ -201,7 +201,7 @@ export function useBookEpisodes(slug: string | undefined) {
       if (error) throw error;
       return (data ?? []) as Array<{
         entity_id: string;
-        subtype: string | null;
+        link_subtype: string | null;
         canonical_name: string;
         slug: string;
         episode_id: number;

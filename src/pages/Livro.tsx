@@ -34,7 +34,7 @@ export default function Livro() {
     episode_title: r.episode_title,
     episode_number: r.episode_number,
     published_at: r.published_at,
-    subtype: r.subtype,
+    subtype: r.link_subtype,
   }));
 
   return (
