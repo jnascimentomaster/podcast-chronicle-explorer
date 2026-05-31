@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useEpisodeBySlug, useEpisodeNeighbours, useEpisodeTranscript } from "@/hooks/useEpisode";
 import TagSection, { ListSection } from "@/components/episodes/TagSection";
+import EpisodeEntityLinks from "@/components/entities/EpisodeEntityLinks";
 import { formatDate, formatDuration } from "@/lib/format";
 
 export default function Episodio() {
@@ -114,8 +115,7 @@ export default function Episodio() {
       <div className="ornament-rule my-10" />
 
       <div className="grid md:grid-cols-2 gap-x-10">
-        <TagSection title="Personagens" items={ep.personagens} paramKey="personagem" />
-        <TagSection title="Países e regiões" items={ep.paises} paramKey="pais" />
+        <EpisodeEntityLinks episodeId={ep.id} />
         <TagSection title="Épocas" items={ep.epocas} paramKey="epoca" />
         <TagSection title="Temas" items={ep.temas} paramKey="tema" />
         <TagSection title="Eventos" items={ep.eventos} />
@@ -125,8 +125,6 @@ export default function Episodio() {
       <div className="ornament-rule my-10" />
 
       <div className="grid md:grid-cols-2 gap-x-10">
-        <ListSection title="Livros recomendados" items={ep.livros_recomendados} icon="📖" />
-        <ListSection title="Livros citados" items={ep.livros_citados} icon="📚" />
         <ListSection title="Filmes e documentários" items={ep.filmes_documentarios} icon="🎬" />
       </div>
 
