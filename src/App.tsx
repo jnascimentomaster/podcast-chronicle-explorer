@@ -17,6 +17,7 @@ import Lugares from "./pages/Lugares.tsx";
 import Lugar from "./pages/Lugar.tsx";
 import Livros from "./pages/Livros.tsx";
 import Livro from "./pages/Livro.tsx";
+import Timeline from "./pages/Timeline.tsx";
 import SiteLayout from "./components/layout/SiteLayout";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/lugar/:slug" element={<Lugar />} />
             <Route path="/livros" element={<Livros />} />
             <Route path="/livro/:slug" element={<Livro />} />
+            <Route path="/timeline" element={<Timeline />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Route>
